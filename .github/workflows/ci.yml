@@ -121,6 +121,8 @@ jobs:
 
   integration-tests:
     runs-on: ${{ matrix.os }}
+    env:
+      CGO_ENABLED: 0
     strategy:
       fail-fast: false
       matrix:
