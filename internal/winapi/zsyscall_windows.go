@@ -44,6 +44,7 @@ var (
 	modiphlpapi   = windows.NewLazySystemDLL("iphlpapi.dll")
 	modadvapi32   = windows.NewLazySystemDLL("advapi32.dll")
 	modcfgmgr32   = windows.NewLazySystemDLL("cfgmgr32.dll")
+	modoffreg     = windows.NewLazySystemDLL("offreg.dll")
 
 	procBfSetupFilter                          = modbindfltapi.NewProc("BfSetupFilter")
 	procNetLocalGroupGetInfo                   = modnetapi32.NewProc("NetLocalGroupGetInfo")
@@ -78,6 +79,8 @@ var (
 	procNtOpenDirectoryObject                  = modntdll.NewProc("NtOpenDirectoryObject")
 	procNtQueryDirectoryObject                 = modntdll.NewProc("NtQueryDirectoryObject")
 	procRtlNtStatusToDosError                  = modntdll.NewProc("RtlNtStatusToDosError")
+	procORCreateHive                           = modoffreg.NewProc("ORCreateHive")
+	procORSaveHive                             = modoffreg.NewProc("ORSaveHive")
 )
 
 func BfSetupFilter(jobHandle windows.Handle, flags uint32, virtRootPath *uint16, virtTargetPath *uint16, virtExceptions **uint16, virtExceptionPathCount uint32) (hr error) {
@@ -402,6 +405,22 @@ func RtlNtStatusToDosError(status uint32) (winerr error) {
 	r0, _, _ := syscall.Syscall(procRtlNtStatusToDosError.Addr(), 1, uintptr(status), 0, 0)
 	if r0 != 0 {
 		winerr = syscall.Errno(r0)
+	}
+	return
+}
+
+func ORCreateHive(key *syscall.Handle) (regerrno error) {
+	r0, _, _ := syscall.Syscall(procORCreateHive.Addr(), 1, uintptr(unsafe.Pointer(key)), 0, 0)
+	if r0 != 0 {
+		regerrno = syscall.Errno(r0)
+	}
+	return
+}
+
+func ORSaveHive(key syscall.Handle, file *uint16, OsMajorVersion uint32, OsMinorVersion uint32) (regerrno error) {
+	r0, _, _ := syscall.Syscall6(procORSaveHive.Addr(), 4, uintptr(key), uintptr(unsafe.Pointer(file)), uintptr(OsMajorVersion), uintptr(OsMinorVersion), 0, 0)
+	if r0 != 0 {
+		regerrno = syscall.Errno(r0)
 	}
 	return
 }
