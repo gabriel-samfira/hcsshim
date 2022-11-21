@@ -40,6 +40,7 @@ func ensureHive(path string, root *os.File) error {
 	if err := winapi.ORCreateHive(&key); err != nil {
 		return fmt.Errorf("creating hive: %w", err)
 	}
+	defer winapi.ORCloseHive(&key)
 
 	hivePath, err := syscall.UTF16PtrFromString(fullPath)
 	if err != nil {
